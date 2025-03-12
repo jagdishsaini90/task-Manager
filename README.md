@@ -79,3 +79,12 @@ Utility functions in `utils/`:
    npm install
    npm run dev
    ```
+3. 👥 Sample Users for Login
+
+Use the following sample users to simulate role-based access:
+
+| Username | Password | Role      |
+| -------- | -------- | --------- |
+| admin    | password | Manager   |
+| devuser  | password | Developer |
+| charlie  | password | Developer |
