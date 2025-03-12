@@ -44,3 +44,50 @@ export const convertTimeDiff = (start, end = Date.now()) => {
   const hours = totalHours % 24;
   return `${days} days and ${hours} hours`;
 };
+
+// utils/taskHelpers.js
+
+export const getUserFromStorage = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user"));
+  } catch (err) {
+    return null;
+  }
+};
+
+export const filterTasks = (tasks, filters, user) => {
+  let result =
+    user?.role === "Developer"
+      ? tasks.filter(
+          (task) =>
+            task.assignee.toLowerCase() === user?.username?.toLowerCase()
+        )
+      : tasks;
+
+  if (filters.status) {
+    result = result.filter((task) => task.status === filters.status);
+  }
+
+  if (filters.priority) {
+    result = result.filter((task) => task.priority === filters.priority);
+  }
+
+  if (filters.assignee) {
+    result = result.filter(
+      (task) => task.assignee.toLowerCase() === filters.assignee.toLowerCase()
+    );
+  }
+
+  return result;
+};
+
+export const getColumnsByRole = (role) =>
+  role === "Developer"
+    ? ["Open", "Pending"]
+    : ["Open", "Pending", "Closed", "Reopened"];
+
+export const getAllAssignees = (tasks) =>
+  tasks.reduce((acc, task) => {
+    if (!acc.includes(task.assignee)) acc.push(task.assignee);
+    return acc;
+  }, []);

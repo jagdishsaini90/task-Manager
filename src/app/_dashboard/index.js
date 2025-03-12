@@ -1,7 +1,16 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import styled from "styled-components";
+
 import TaskCreationWrapper from "../_task";
+import CardComponent from "../../components/card";
+import Button from "../../components/button";
+import Select from "../../components/select";
+import LineChartWrapper from "@/components/line-chart";
 import { CiFilter } from "react-icons/ci";
+import { IoMdAddCircleOutline } from "react-icons/io";
+
 import {
   Board,
   Column,
@@ -13,17 +22,14 @@ import {
   SubText,
   Title,
 } from "./styles";
-import { useSelector } from "react-redux";
-import CardComponent from "../../components/card";
-import Button from "../../components/button";
-import { IoMdAddCircleOutline } from "react-icons/io";
-import Select from "../../components/select";
-import styled from "styled-components";
-import LineChartWrapper from "@/components/line-chart";
-import { getTaskTrendData, groupedTasks } from "@/utils/helper";
 
-const MANAGER_COLUMNS = ["Pending", "Closed", "Reopened"];
-const DEVELOPER_COLUMNS = ["Open", "Pending"];
+import {
+  filterTasks,
+  getColumnsByRole,
+  getUserFromStorage,
+  getAllAssignees,
+} from "@/utils/helper";
+import { getTaskTrendData, groupedTasks } from "@/utils/helper";
 
 export const FilterSection = styled(Section)`
   display: flex;
@@ -37,45 +43,39 @@ export const FilterSection = styled(Section)`
 `;
 
 export default function Dashboard() {
-  const [tasks, setTasks] = useState([]);
-  const [filteredTasks, setFilteredTasks] = useState([]);
   const [filterStatus, setFilterStatus] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
+  const [filterUser, setFilterUser] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+
   const allTasks = useSelector((state) => state.tasks.tasks);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = useMemo(() => getUserFromStorage(), []);
 
-  useEffect(() => {
-    const userTasks =
-      user?.role === "Developer"
-        ? allTasks.filter(
-            (task) =>
-              task.assignee.toLowerCase() === user.username.toLowerCase()
-          )
-        : allTasks;
-    setTasks(userTasks);
-    setFilteredTasks(userTasks);
-  }, [allTasks]);
-
-  useEffect(() => {
-    let temp = [...tasks];
-    if (filterStatus)
-      temp = temp.filter((task) => task.status === filterStatus);
-    if (filterPriority)
-      temp = temp.filter((task) => task.priority === filterPriority);
-    setFilteredTasks(temp);
-  }, [filterStatus, filterPriority, tasks]);
-
-  const taskTrendData = useMemo(
-    () => getTaskTrendData(filteredTasks),
-    [filteredTasks]
+  const filteredTasks = useMemo(
+    () =>
+      filterTasks(
+        allTasks,
+        {
+          status: filterStatus,
+          priority: filterPriority,
+          assignee: filterUser,
+        },
+        user
+      ),
+    [allTasks, filterStatus, filterPriority, filterUser, user]
   );
 
   const tasksGroup = useMemo(
     () => groupedTasks(filteredTasks),
     [filteredTasks]
   );
+  const taskTrendData = useMemo(
+    () => getTaskTrendData(filteredTasks),
+    [filteredTasks]
+  );
+  const columns = useMemo(() => getColumnsByRole(user?.role), [user?.role]);
+  const allAssignees = useMemo(() => getAllAssignees(allTasks), [allTasks]);
 
   return (
     <Container>
@@ -90,6 +90,7 @@ export default function Dashboard() {
           onClick={() => setShowModal(true)}
         />
       </Header>
+
       <FilterSection>
         <CiFilter fontSize={20} />
         <Filters>
@@ -99,16 +100,16 @@ export default function Dashboard() {
             label="By-Status"
           >
             <option value="">All Statuses</option>
+            <option value="Open">Open</option>
             <option value="Pending">Pending</option>
-            {user.role === "Manager" ? (
+            {user?.role === "Manager" && (
               <>
                 <option value="Closed">Closed</option>
                 <option value="Reopened">Reopened</option>
               </>
-            ) : (
-              <option value="Open">Open</option>
             )}
           </Select>
+
           <Select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
@@ -119,40 +120,51 @@ export default function Dashboard() {
             <option value="Medium">Medium</option>
             <option value="High">High</option>
           </Select>
+
+          {user?.role === "Manager" && (
+            <Select
+              value={filterUser}
+              onChange={(e) => setFilterUser(e.target.value)}
+              label="By-Assignee"
+            >
+              <option value="">All Assignee</option>
+              {allAssignees.map((a) => (
+                <option key={a} value={a.toLowerCase()}>
+                  {a.toLowerCase()}
+                </option>
+              ))}
+            </Select>
+          )}
         </Filters>
       </FilterSection>
 
       <Section>
         <Board>
-          {[
-            ...(user?.role === "Developer"
-              ? DEVELOPER_COLUMNS
-              : MANAGER_COLUMNS),
-          ].map((col) => {
-            return (
-              <Column key={col}>
-                <ColumnTitle>
-                  {col === "Pending" ? col + " Verification" : col}
-                </ColumnTitle>
-                {tasksGroup[col].length > 0 ? (
-                  tasksGroup[col].map((task) => (
-                    <CardComponent
-                      key={task.id}
-                      task={task}
-                      setShowModal={setShowModal}
-                      setSelectedTask={setSelectedTask}
-                      user={user}
-                    />
-                  ))
-                ) : (
-                  <SubText>No {col} tasks</SubText>
-                )}
-              </Column>
-            );
-          })}
+          {columns.map((col) => (
+            <Column key={col}>
+              <ColumnTitle>
+                {col === "Pending" ? `${col} Verification` : col}
+              </ColumnTitle>
+              {tasksGroup?.[col]?.length > 0 ? (
+                tasksGroup[col].map((task) => (
+                  <CardComponent
+                    key={task.id}
+                    task={task}
+                    setShowModal={setShowModal}
+                    setSelectedTask={setSelectedTask}
+                    user={user}
+                  />
+                ))
+              ) : (
+                <SubText>No {col} tasks</SubText>
+              )}
+            </Column>
+          ))}
         </Board>
       </Section>
+
       <LineChartWrapper taskTrendData={taskTrendData} />
+
       <TaskCreationWrapper
         showModal={showModal}
         selectedTask={selectedTask}
