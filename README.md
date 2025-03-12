@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🗂️ Task Management Dashboard
 
-## Getting Started
+A clean, role-based task management application built with **Next.js**, **React**, **Redux Toolkit**, and **Styled Components**. The dashboard allows users to create, filter, and track tasks in real-time, with visual trends and customizable filters.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- ✅ Role-based access: **Developer** and **Manager** views
+- 📝 Create, view, delete, and update tasks
+- 🔍 Filter by **Status**, **Priority**, and **Assignee**
+- 📊 Task trends with interactive **Line Charts**
+- 📂 Tasks grouped by status (Open, Pending, Closed, Reopened)
+- 🕒 Time tracking support (extendable)
+- 🎨 Fully responsive and modular design
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## ⚙️ Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- [React](https://reactjs.org/)
+- [Redux Toolkit](https://redux-toolkit.js.org/)
+- [Styled Components](https://styled-components.com/)
+- [Chart.js / Recharts](https://recharts.org/)
+- [React Icons](https://react-icons.github.io/react-icons/)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔑 User Roles
 
-## Deploy on Vercel
+- User has 2 roles – **Developer** and **Manager**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 👨‍💻 Developer
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Can view and manage **their own tasks**
+- Can view **Open** and **Pending** columns
+- **Assignee field disabled** during task creation
+
+### 👩‍💼 Manager
+
+- Can view **all tasks**
+- Access to **Open**, **Pending**, **Closed**, and **Reopened** columns
+- Can assign tasks to **any user**
+
+---
+
+## 📊 Task Trend Chart
+
+- Visual representation of task statuses over time
+- Based on filtered task data
+- Helps managers track project progress and workload
+
+---
+
+## 🧠 Helper Utilities
+
+Utility functions in `utils/`:
+
+- `getUserFromStorage()` – Parses logged-in user from localStorage
+- `filterTasks()` – Apply filters based on status, priority, assignee
+- `groupedTasks()` – Groups tasks by status for column-wise rendering
+- `getTaskTrendData()` – Prepares data for the trend line chart
+- `getColumnsByRole()` – Determines visible columns by user role
+- `getAllAssignees()` – Extracts unique assignees for filter dropdown
+
+---
+
+## 🛠️ Setup Instructions
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/jagdishsaini90/task-Manager.git
+   cd task-Manager
+   ```
+2. **Run the Project**
+   ```bash
+   npm install
+   npm run dev
+   ```
