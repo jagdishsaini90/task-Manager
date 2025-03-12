@@ -7,8 +7,9 @@ const initialState = {
 };
 
 const mockUsers = [
-  { username: "admin", password: "password123", role: "Manager" },
-  { username: "devuser", password: "devpass", role: "Developer" },
+  { username: "admin", password: "password", role: "Manager" },
+  { username: "devuser", password: "password", role: "Developer" },
+  { username: "charlie", password: "password", role: "Developer" },
 ];
 
 const authSlice = createSlice({

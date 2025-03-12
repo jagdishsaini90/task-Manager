@@ -8,10 +8,12 @@ const initialState = {
       description:
         "Create a responsive login page with form validation and error handling.",
       priority: "High",
-      status: "Open",
+      status: "Pending",
       assignee: "devuser",
       startDate: "2025-03-13",
       endDate: "2025-03-16",
+      type: "Bug",
+      currentTime: 1710190244,
     },
     {
       id: "b3722ef0-d285-479e-9691-7dc867a24568",
@@ -23,6 +25,7 @@ const initialState = {
       assignee: "devuser",
       startDate: "2025-03-14",
       endDate: "2025-03-18",
+      type: "Bug",
     },
     {
       id: "07a8b26d-b64d-4937-9ea7-4a8c313340d1",
@@ -33,6 +36,7 @@ const initialState = {
       assignee: "Charlie",
       startDate: "2025-03-13",
       endDate: "2025-03-15",
+      type: "Bug",
     },
     {
       id: "e4006400-a0d4-4e6f-9dd4-435ea2dbabd2",
@@ -44,6 +48,7 @@ const initialState = {
       assignee: "Diana",
       startDate: "2025-03-15",
       endDate: "2025-03-20",
+      type: "Bug",
     },
   ],
 };

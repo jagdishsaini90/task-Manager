@@ -10,7 +10,7 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "Task Tracker",
+  title: "Task Manager",
   description: "A simple task/bug management application",
 };
 

@@ -2,110 +2,29 @@
 import { addTask, deleteTask, editTask } from "@/redux/slices/taskSlice";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import styled, { keyframes } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { MdOutlineCancel, MdDelete } from "react-icons/md";
 import Input from "../../components/input";
 import Textarea from "../../components/textarea";
 import Button from "../../components/button";
 import Select from "../../components/select";
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-`;
-
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-  padding: 1rem;
-`;
-
-const ModalContainer = styled.div`
-  background-color: #1e1e1e;
-  padding: 2rem;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 600px;
-  color: #fff;
-  animation: ${fadeIn} 0.3s ease-in-out;
-
-  @media (max-width: 600px) {
-    padding: 1rem;
-    max-height: 70%;
-    overflow-y: auto;
-  }
-`;
-
-const Title = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  svg {
-    font-size: 1.4rem;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 1.25rem;
-  }
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-const Footer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-
-  @media (max-width: 600px) {
-    flex-direction: row;
-  }
-`;
-
-const Row = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const ErrorText = styled.p`
-  color: #ff4d4f;
-  text-align: center;
-  margin-top: -0.5rem;
-`;
+import { checkDateRange, convertTimeDiff } from "@/utils/helper";
+import {
+  ErrorText,
+  Footer,
+  Form,
+  ModalContainer,
+  Overlay,
+  Row,
+  Title,
+} from "./styles";
 
 const initialState = {
   title: "",
   description: "",
   priority: "Medium",
   status: "Open",
+  type: "Story",
   assignee: "",
   startDate: "",
   endDate: "",
@@ -157,31 +76,25 @@ export default function TaskCreationWrapper({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const today = new Date();
-    const startDate = new Date(formData.startDate);
-    const endDate = new Date(formData.endDate);
-
-    today.setHours(0, 0, 0, 0);
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(0, 0, 0, 0);
-
-    if (startDate < today) {
-      setError("Start Date cannot be earlier than today.");
+    const errorMessage = checkDateRange(formData);
+    if (errorMessage.length > 0) {
+      setError(errorMessage);
       return;
     }
-
-    if (endDate < startDate) {
-      setError("End Date cannot be earlier than Start Date.");
-      return;
-    }
-
     setError("");
     if (selectedTask && selectedTask.id) {
-      dispatch(editTask(formData));
+      dispatch(
+        editTask({
+          ...formData,
+          totalTimeSpend:
+            formData.status === "Closed"
+              ? convertTimeDiff(formData.currentTime)
+              : null,
+        })
+      );
     } else {
-      dispatch(addTask({ ...formData, id: uuidv4() }));
+      dispatch(addTask({ ...formData, id: uuidv4(), currentTime: Date.now() }));
     }
-
     handleClose();
   };
 
@@ -236,7 +149,6 @@ export default function TaskCreationWrapper({
                   {formData?.id && (
                     <>
                       <option value="Pending">Pending Verification</option>
-
                       {user.role === "Manager" && (
                         <>
                           <option value="Closed">Closed</option>
@@ -247,6 +159,18 @@ export default function TaskCreationWrapper({
                   )}
                 </Select>
               </Row>
+
+              <Select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                label="Task Type"
+              >
+                <option value="Story">Story</option>
+                <option value="Bug">Bug</option>
+                <option value="Epic">Epic</option>
+              </Select>
+
               <Input
                 name="assignee"
                 placeholder="Assignee"

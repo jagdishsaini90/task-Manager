@@ -1,15 +1,5 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
-} from "recharts";
 import TaskCreationWrapper from "../_task";
 import { CiFilter } from "react-icons/ci";
 import {
@@ -29,8 +19,10 @@ import Button from "../../components/button";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import Select from "../../components/select";
 import styled from "styled-components";
+import LineChartWrapper from "@/components/line-chart";
+import { getTaskTrendData, groupedTasks } from "@/utils/helper";
 
-const MANAGER_COLUMNS = ["Open", "Pending", "Closed", "Reopened"];
+const MANAGER_COLUMNS = ["Pending", "Closed", "Reopened"];
 const DEVELOPER_COLUMNS = ["Open", "Pending"];
 
 export const FilterSection = styled(Section)`
@@ -75,25 +67,15 @@ export default function Dashboard() {
     setFilteredTasks(temp);
   }, [filterStatus, filterPriority, tasks]);
 
-  const groupedTasks = useMemo(() => {
-    return filteredTasks.reduce(
-      (acc, task) => {
-        acc[task.status] = acc[task.status] || [];
-        acc[task.status].push(task);
-        return acc;
-      },
-      { Open: [], Closed: [], Pending: [], Reopened: [] }
-    );
-  }, [filteredTasks]);
+  const taskTrendData = useMemo(
+    () => getTaskTrendData(filteredTasks),
+    [filteredTasks]
+  );
 
-  const taskTrendData = useMemo(() => {
-    return Object.entries(
-      filteredTasks.reduce((acc, task) => {
-        acc[task.date] = (acc[task.date] || 0) + 1;
-        return acc;
-      }, {})
-    ).map(([date, count]) => ({ date, count }));
-  }, [filteredTasks]);
+  const tasksGroup = useMemo(
+    () => groupedTasks(filteredTasks),
+    [filteredTasks]
+  );
 
   return (
     <Container>
@@ -108,7 +90,6 @@ export default function Dashboard() {
           onClick={() => setShowModal(true)}
         />
       </Header>
-
       <FilterSection>
         <CiFilter fontSize={20} />
         <Filters>
@@ -118,14 +99,14 @@ export default function Dashboard() {
             label="By-Status"
           >
             <option value="">All Statuses</option>
-            <option value="Open">Open</option>
             <option value="Pending">Pending</option>
-
-            {user.role === "Manager" && (
+            {user.role === "Manager" ? (
               <>
                 <option value="Closed">Closed</option>
                 <option value="Reopened">Reopened</option>
               </>
+            ) : (
+              <option value="Open">Open</option>
             )}
           </Select>
           <Select
@@ -153,13 +134,14 @@ export default function Dashboard() {
                 <ColumnTitle>
                   {col === "Pending" ? col + " Verification" : col}
                 </ColumnTitle>
-                {groupedTasks[col].length > 0 ? (
-                  groupedTasks[col].map((task) => (
+                {tasksGroup[col].length > 0 ? (
+                  tasksGroup[col].map((task) => (
                     <CardComponent
                       key={task.id}
                       task={task}
                       setShowModal={setShowModal}
                       setSelectedTask={setSelectedTask}
+                      user={user}
                     />
                   ))
                 ) : (
@@ -170,27 +152,7 @@ export default function Dashboard() {
           })}
         </Board>
       </Section>
-
-      <Section>
-        <h2>Task Trend Line</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart
-            data={taskTrendData}
-            margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-          >
-            <CartesianGrid stroke="#444" />
-            <XAxis dataKey="date" stroke="#ccc" />
-            <YAxis stroke="#ccc" />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="count"
-              stroke="#0070f3"
-              strokeWidth={2}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </Section>
+      <LineChartWrapper taskTrendData={taskTrendData} />
       <TaskCreationWrapper
         showModal={showModal}
         selectedTask={selectedTask}

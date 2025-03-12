@@ -58,9 +58,7 @@ export default function Home() {
       try {
         setUserData(JSON.parse(storedUser));
       } catch (error) {
-        console.error("Invalid user data in localStorage");
         localStorage.removeItem("user");
-        router.push("/auth/login");
       }
     }
   }, [router]);
